@@ -1,0 +1,10 @@
+# Kept in-repo so local runs and CI use the same profile:
+#   DBT_PROFILES_DIR=. dbt build
+taxi_analytics:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: warehouse/taxi.duckdb
+      schema: main
+      threads: 4

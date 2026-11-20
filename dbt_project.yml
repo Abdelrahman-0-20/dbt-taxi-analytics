@@ -1,0 +1,28 @@
+name: 'taxi_analytics'
+version: '1.0.0'
+config-version: 2
+
+profile: 'taxi_analytics'
+model-paths: ["models"]
+test-paths: ["tests"]
+macro-paths: ["macros"]
+docs-paths: ["models"]
+clean-targets: ["target", "dbt_packages"]
+
+vars:
+  # Cleaning thresholds are data, not hard-coded SQL literals.
+  trips_path: 'data/raw/yellow_tripdata_2024-01.parquet'
+  zones_path: 'data/raw/taxi_zone_lookup.csv'
+  max_fare: 300.0
+  max_distance: 100.0
+  min_passengers: 1
+  max_passengers: 9
+
+models:
+  taxi_analytics:
+    staging:
+      +materialized: view
+    intermediate:
+      +materialized: ephemeral   # compiled as a CTE — no table is written
+    marts:
+      +materialized: table
