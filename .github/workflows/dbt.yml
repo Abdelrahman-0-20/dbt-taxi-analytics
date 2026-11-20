@@ -1,0 +1,47 @@
+name: dbt pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "41 */6 * * *"
+  workflow_dispatch:
+
+jobs:
+  dbt-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Cache source data (no re-download between runs)
+        uses: actions/cache@v4
+        with:
+          path: data/raw
+          key: raw-data-v1
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Fetch source data
+        run: python scripts/fetch_data.py
+
+      - name: Install dbt packages
+        run: DBT_PROFILES_DIR=. dbt deps
+
+      - name: dbt build (models + data tests)
+        run: DBT_PROFILES_DIR=. dbt build
+
+      - name: Generate docs (lineage graph)
+        run: DBT_PROFILES_DIR=. dbt docs generate
+
+      - name: Upload run results, manifest, and docs
+        uses: actions/upload-artifact@v4
+        with:
+          name: dbt-target
+          path: target/
