@@ -1,0 +1,54 @@
+version: 2
+
+models:
+  - name: fct_trips
+    description: "One row per cleaned trip. Incremental: new pickups are appended, history untouched."
+    columns:
+      - name: trip_sk
+        description: "Surrogate key over pickup/dropoff timestamps, locations, and fare."
+        tests:
+          - not_null
+          - unique
+      - name: pickup_location_id
+        tests:
+          - relationships:
+              arguments:
+                to: ref('dim_zones')
+                field: location_id
+      - name: dropoff_location_id
+        tests:
+          - relationships:
+              arguments:
+                to: ref('dim_zones')
+                field: location_id
+      - name: fare_amount
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 0
+                max_value: 300
+                inclusive: true
+
+  - name: mart_revenue_daily
+    description: "Business-facing daily revenue rollup."
+    columns:
+      - name: revenue_date
+        tests:
+          - not_null
+          - unique
+      - name: trip_count
+        tests:
+          - dbt_utils.accepted_range:
+              arguments:
+                min_value: 1
+                inclusive: true
+
+  - name: mart_zone_revenue
+    description: "Revenue by day and pickup zone (fact joined to dimension)."
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - revenue_date
+              - borough
+              - zone_name

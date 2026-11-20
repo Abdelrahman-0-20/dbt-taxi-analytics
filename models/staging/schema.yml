@@ -1,0 +1,37 @@
+version: 2
+
+models:
+  - name: stg_trips
+    description: "Typed trip records read directly from the raw parquet file (dbt-duckdb reads files as relations)."
+    columns:
+      - name: pickup_at
+        tests:
+          - not_null
+      - name: dropoff_at
+        tests:
+          - not_null
+      - name: fare_amount
+        tests:
+          - not_null
+      - name: payment_type_code
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                # TLC payment types: 0 unspecified, 1 credit, 2 cash,
+                # 3 no charge, 4 dispute, 5 unknown, 6 voided
+                values: [0, 1, 2, 3, 4, 5, 6]
+      - name: pickup_location_id
+        tests:
+          - not_null
+      - name: dropoff_location_id
+        tests:
+          - not_null
+
+  - name: stg_zones
+    description: "Zone lookup conformed for joins (the dimension). Same public file as project #1."
+    columns:
+      - name: location_id
+        tests:
+          - not_null
+          - unique
