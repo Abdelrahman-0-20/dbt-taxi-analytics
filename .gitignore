@@ -2,6 +2,8 @@
 __pycache__/
 target/
 dbt_packages/
+logs/
+.user.yml
 data/raw/
 *.duckdb
 *.duckdb.wal
